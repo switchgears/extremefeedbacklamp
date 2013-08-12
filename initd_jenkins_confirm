@@ -1,0 +1,70 @@
+#!/bin/bash
+# /etc/init.d/jenkins_confirm
+# Debian on Raspberry Pi compatible XFD startup script, Device Discovery Server.
+# info@switch-gears.dk
+#
+### BEGIN INIT INFO
+# Provides:          jenkins_confirm_server
+# Required-Start:    $remote_fs $syslog $network
+# Required-Stop:     $remote_fs $syslog $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start XFD Jenkins Confirm at boot time
+# Description:       Jumpstarts the heart of the Switch-Gears.dk eXtreme Feedback Device.
+### END INIT INFO
+
+DESC="Gitgear.com eXtreme Feedback Device Jenkins Confirm Server"
+NAME=jenkins_confirm
+SCRIPTNAME=/etc/init.d/$NAME
+PIDFILE=/tmp/xfd/jenkins_confirm.pid
+
+if [ `id -u` -ne 0 ]; then
+    echo "The $NAME init script can only be run as root"
+    exit 1
+fi
+
+do_start()
+{
+    mkdir -p $(dirname $PIDFILE)
+    rm -f $PIDFILE
+    sudo /home/pi/extremefeedbacklamp/jenkins_confirm.py &
+    echo -n $! > $PIDFILE
+}
+
+do_stop()
+{
+    if [ -f $PIDFILE ]; then
+        kill `cat $PIDFILE`
+    fi
+}
+
+case "$1" in
+  start)
+    echo "Starting $NAME"
+    do_start
+    ;;
+  stop)
+    echo "Stopping $NAME"
+    do_stop
+    ;;
+  restart)
+    echo "Stopping $NAME"
+    do_stop
+    do_start
+    ;;
+  status)
+    if [ -f $PIDFILE ]; then
+        echo "XFD Jenkins Confirm Server (should be) running with PID:"
+        cat $PIDFILE
+        echo ""
+    else
+        echo "XFD Jenkins Confirm Server not running (or not started through init.d)"
+    fi
+    ;;
+  *)
+    echo "Usage: /etc/init.d/switchgearsXFDJenkinsConfirmServer {start|stop|status|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0

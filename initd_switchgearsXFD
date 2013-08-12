@@ -1,0 +1,71 @@
+#!/bin/bash
+# /etc/init.d/switchgearsXFD
+# Debian on Raspberry Pi compatible XFD startup script.
+# info@switch-gears.dk
+#
+### BEGIN INIT INFO
+# Provides:          XFD
+# Required-Start:    $remote_fs $syslog $network
+# Required-Stop:     $remote_fs $syslog $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start XFD at boot time
+# Description:       Jumpstarts the heart of the Switch-Gears.dk eXtreme Feedback Device.
+### END INIT INFO
+
+DESC="Switch-Gears.dk eXtreme Feedback Device Server"
+NAME=switchgearsXFD
+SCRIPTNAME=/etc/init.d/$NAME
+XFDPIDFILE=/tmp/xfd/xfd.pid
+
+# Make sure we run as root, since setting pins through wiring-pi requires root access
+if [ `id -u` -ne 0 ]; then
+    echo "The $NAME init script can only be run as root"
+    exit 1
+fi
+
+do_start()
+{
+    mkdir -p $(dirname $XFDPIDFILE)
+    rm -f $XFDPIDFILE
+    sudo /home/pi/extremefeedbacklamp/xfd.py &
+    echo -n $! > $XFDPIDFILE
+}
+
+do_stop()
+{
+    if [ -f $XFDPIDFILE ]; then
+        kill `cat $XFDPIDFILE`
+    fi
+}
+
+case "$1" in
+  start)
+    echo "Starting $NAME"
+    do_start
+    ;;
+  stop)
+    echo "Stopping $NAME"
+    do_stop
+    ;;
+  restart)
+    echo "Stopping $NAME"
+    do_stop
+    do_start
+    ;;
+  status)
+    if [ -f $XFDPIDFILE ]; then
+        echo "XFD (should be) running with PID:"
+        cat $XFDPIDFILE
+        echo ""
+    else
+        echo "XFD not running (or not started through init.d)"
+    fi
+    ;;
+  *)
+    echo "Usage: /etc/init.d/switchgearsXFD {start|stop|status|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0
