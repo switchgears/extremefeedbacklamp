@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # expand image to whole sd-card
+export LANG=C
 sudo raspi-config --expand-rootfs
 
 # Disable boot straight to desktop
