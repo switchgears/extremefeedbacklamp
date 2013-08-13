@@ -46,6 +46,13 @@ sync
 
 sudo apt-get autoremove -y
 sudo apt-get autoclean -y
+
+sudo cp -f /home/pi/extremefeedbacklamp/xfdlampupdate.sh /etc/cron.daily/xfdlampupdate
+sudo chmod +x /etc/cron.daily/xfdlampupdate
+# if daily updates just ain't quick enough
+#sudo cp -f /home/pi/extremefeedbacklamp/xfdlampupdate.sh /etc/cron.hourly/xfdlampupdate
+#sudo chmod +x /etc/cron.hourly/xfdlampupdate
+
 sync
 
 # reboot
