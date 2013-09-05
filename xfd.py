@@ -30,8 +30,10 @@ SIREN_NEXT_STATE = 'setOff'
 SOUNDEFFECT_NEXT_STATE = 'setOff'
 STATE_CHANGE_LOCK = threading.Lock()
 LCD_LOCK = threading.Lock()
-LCD_ONE = "GitGear.com/xfd"
-LCD_TWO = ""
+LCD_ROTATOR = { 'splash':['GitGear.com/xfd',''],
+  'ip':['IP Address:','Searching...'],
+  'text':['Customise this','from jenkins UI'],
+  }
 LCD_HANDLE = None
 
 # where to listen
@@ -103,16 +105,10 @@ def get_connection_string(iface):
 
 def lcd_init():
     """Initialize lcd and get ip address"""
-    global LCD_HANDLE, LCD_TWO
+    global LCD_HANDLE
     LCD_HANDLE = wiringpi.lcdInit(LCD_ROWS, LCD_CHARS, LCD_BITS, PIN_LCD_RS, PIN_LCD_E, *PINS_LCD_DB)
     wiringpi.lcdHome(LCD_HANDLE)
-    lcd_two = get_connection_string("eth0")
-    LCD_LOCK.acquire()
-    try:
-        LCD_TWO = lcd_two
-    finally:
-        LCD_LOCK.release()
-
+    
 # MAIN
 
 # pin config
@@ -569,13 +565,23 @@ def netloop():
 
 def lcdloop():
     """LCD display handler"""
+    depeche = 0
     while(1):
         wiringpi.lcdHome(LCD_HANDLE)
         IO.delay(2)
         LCD_LOCK.acquire()
         try:
-            lcd_one = LCD_ONE
-            lcd_two = LCD_TWO
+            key = LCD_ROTATOR.keys()[depeche]
+            if len(LCD_ROTATOR[key]): 
+              lcd_one = LCD_ROTATOR[key][0]
+            if len(LCD_ROTATOR[key]) > 1:
+              lcd_two = LCD_ROTATOR[key][1]
+            else:
+              lcd_two = ""
+
+            depeche = (depeche + 1) % len(LCD_ROTATOR)
+        except TypeError:
+          pass
         finally:
             LCD_LOCK.release()
 
@@ -636,11 +642,11 @@ def soundeffectsloop():
 def iploop():
     """Watch ip address changes"""
     while(1):
-        global LCD_TWO
+        global LCD_ROTATOR
         lcd_two = get_connection_string("eth0")
         LCD_LOCK.acquire()
         try:
-            LCD_TWO = lcd_two
+            LCD_ROTATOR['ip'][1] = lcd_two
         finally:
             LCD_LOCK.release()
         time.sleep(5)
