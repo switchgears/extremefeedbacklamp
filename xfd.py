@@ -450,6 +450,7 @@ def netloop():
     global NEXT_STATE
     global SIREN_NEXT_STATE
     global SOUNDEFFECT_NEXT_STATE
+    global LCD_ROTATOR
     my_next_state = 'setOff'
     my_next_siren_state = 'setOff'
     my_next_soundeffect_state = 'setOff'
@@ -465,6 +466,14 @@ def netloop():
             data = ast.literal_eval(recv_data)
             logging.info("udp datagram rcvd:")
             logging.info(data)
+
+            if 'lcd_text' in data:
+                LCD_LOCK.acquire()
+                try:
+                    LCD_ROTATOR['text'] = [data['lcd_text']['line_one'],
+                                           data['lcd_text']['line_two']]
+                finally:
+                    LCD_LOCK.release()
 
             if ( 'siren' in data and
                  'action' in data and
