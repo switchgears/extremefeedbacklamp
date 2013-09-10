@@ -30,10 +30,14 @@ SIREN_NEXT_STATE = 'setOff'
 SOUNDEFFECT_NEXT_STATE = 'setOff'
 STATE_CHANGE_LOCK = threading.Lock()
 LCD_LOCK = threading.Lock()
-LCD_ROTATOR = { 'splash':['GitGear.com/xfd',''],
+LCD_ROTATOR = { 'splash':['GitGear.com/xfd','eXtremeFeedback!'],
   'ip':['IP Address:','Searching...'],
-  'text':['Customise this','from jenkins UI'],
-  }
+  'text':['Comming soon:',
+          'Customise this',
+          'text in Jenkins',
+          'from the extreme',
+          'feedback plugin'],
+    }
 LCD_HANDLE = None
 
 # where to listen
@@ -76,7 +80,6 @@ def fade_down(pin, step):
         IO.delay(12)
     IO.digitalWrite(pin, IO.LOW)
 
-
 def get_ip(iface):
     """Get Ip address of Pi for interface"""
     import fcntl
@@ -103,12 +106,44 @@ def get_connection_string(iface):
         ip_addr = "%s" % ip_addr
     return ip_addr
 
+def format_text(text):
+    """ Format string for LCD, break on newlines and spaces close to 16 chars"""
+    # Split on newlines:
+    lines = text.splitlines()
+    lcd_lines = []
+    num_chars = 16
+    for line in lines:
+        if len(line) > num_chars:
+            lcd_lines.extend(split_long_line(line, num_chars))
+        else:
+            lcd_lines.append(line)
+    return lcd_lines
+
+def split_long_line(line, length):
+    """Split long lines on space or length charaters"""
+    result = []
+    while line:
+        if len(line) < length:
+            result.append(line)
+            line = None
+        else:
+            # Split on spaces
+            idx = line.rfind(' ', 0, length)
+            if idx == -1:
+                # No spaces split on length chars
+                result.append(line[:length])
+                line = line[length:]
+            else:
+                result.append(line[:idx])
+                line = line[idx+1:]
+    return result
+
 def lcd_init():
     """Initialize lcd and get ip address"""
     global LCD_HANDLE
     LCD_HANDLE = wiringpi.lcdInit(LCD_ROWS, LCD_CHARS, LCD_BITS, PIN_LCD_RS, PIN_LCD_E, *PINS_LCD_DB)
     wiringpi.lcdHome(LCD_HANDLE)
-    
+
 # MAIN
 
 # pin config
@@ -250,7 +285,6 @@ def green_to_yellow (fsm):
 def no_op (fsm):
     """State machine no-op, sleeps for 1 sec. without changing lamp state"""
     time.sleep(1)
-
 
 def siren_state_machine():
     """Siren control state machine"""
@@ -470,8 +504,8 @@ def netloop():
             if 'lcd_text' in data:
                 LCD_LOCK.acquire()
                 try:
-                    LCD_ROTATOR['text'] = [data['lcd_text']['line_one'],
-                                           data['lcd_text']['line_two']]
+                    text = format_text(data['lcd_text'])
+                    LCD_ROTATOR['text'] = text
                 finally:
                     LCD_LOCK.release()
 
@@ -571,26 +605,37 @@ def netloop():
         finally:
             STATE_CHANGE_LOCK.release()
 
-
 def lcdloop():
     """LCD display handler"""
     depeche = 0
+    line = 0
+    old_screen_len = 0
     while(1):
         wiringpi.lcdHome(LCD_HANDLE)
         IO.delay(2)
         LCD_LOCK.acquire()
+
         try:
             key = LCD_ROTATOR.keys()[depeche]
-            if len(LCD_ROTATOR[key]): 
-              lcd_one = LCD_ROTATOR[key][0]
-            if len(LCD_ROTATOR[key]) > 1:
-              lcd_two = LCD_ROTATOR[key][1]
+            screen_len = len(LCD_ROTATOR[key])
+            if screen_len != old_screen_len:
+                line = 0;
+            if len(LCD_ROTATOR[key]):
+                lcd_one = LCD_ROTATOR[key][line]
+            line += 1
+            if len(LCD_ROTATOR[key]) == 1:    # Only one line, second blank
+                lcd_two = ""
             else:
-              lcd_two = ""
-
-            depeche = (depeche + 1) % len(LCD_ROTATOR)
+                lcd_two = LCD_ROTATOR[key][line]
+            if line >= len(LCD_ROTATOR[key])-1:
+                line = 0
+                depeche = (depeche + 1) % len(LCD_ROTATOR)
+                update_freq = 3
+            else:
+                update_freq = 1
+            old_screen_len = screen_len
         except TypeError:
-          pass
+            pass
         finally:
             LCD_LOCK.release()
 
@@ -608,7 +653,7 @@ def lcdloop():
         wiringpi.lcdPosition (LCD_HANDLE, 0, 1)
         IO.delay(2)
         wiringpi.lcdPuts(LCD_HANDLE, line_two.ljust(16))
-        time.sleep(5)
+        time.sleep(update_freq)
 
 def soundeffectsloop():
     """Soundeffects playback handler"""
