@@ -107,14 +107,14 @@ def get_connection_string(iface):
     return ip_addr
 
 def format_text(text):
-    """ Format string for LCD, break on newlines and spaces close to 16 chars"""
+    """ Format string for LCD, break on newlines and
+        spaces close to maximum lcd  chars"""
     # Split on newlines:
     lines = text.splitlines()
     lcd_lines = []
-    num_chars = 16
     for line in lines:
-        if len(line) > num_chars:
-            lcd_lines.extend(split_long_line(line, num_chars))
+        if len(line) > LCD_CHARS:
+            lcd_lines.extend(split_long_line(line, LCD_CHARS))
         else:
             lcd_lines.append(line)
     return lcd_lines
@@ -643,16 +643,16 @@ def lcdloop():
         lcd_one = filter( lambda x: 32 <= ord(x) <= 126, lcd_one)
         lcd_two = filter( lambda x: 32 <= ord(x) <= 126, lcd_two)
 
-        line_one = lcd_one[0:16]
-        line_two = lcd_two[0:16]
+        line_one = lcd_one[0:LCD_CHARS]
+        line_two = lcd_two[0:LCD_CHARS]
 
         wiringpi.lcdPosition (LCD_HANDLE, 0, 0)
         IO.delay(2)
-        wiringpi.lcdPuts(LCD_HANDLE, line_one.ljust(16))
+        wiringpi.lcdPuts(LCD_HANDLE, line_one.ljust(LCD_CHARS))
         IO.delay(2)
         wiringpi.lcdPosition (LCD_HANDLE, 0, 1)
         IO.delay(2)
-        wiringpi.lcdPuts(LCD_HANDLE, line_two.ljust(16))
+        wiringpi.lcdPuts(LCD_HANDLE, line_two.ljust(LCD_CHARS))
         time.sleep(update_freq)
 
 def soundeffectsloop():
