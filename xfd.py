@@ -14,6 +14,7 @@ import time
 import wiringpi2 as wiringpi
 import os
 import subprocess
+from lcd import Lcd
 
 #logging level
 #DEBUG: Print EVERYTHING
@@ -29,16 +30,6 @@ NEXT_STATE = 'setOff'
 SIREN_NEXT_STATE = 'setOff'
 SOUNDEFFECT_NEXT_STATE = 'setOff'
 STATE_CHANGE_LOCK = threading.Lock()
-LCD_LOCK = threading.Lock()
-LCD_ROTATOR = { 'splash':['GitGear.com/xfd','eXtremeFeedback!'],
-  'ip':['IP Address:','Searching...'],
-  'text':['Comming soon:',
-          'Customise this',
-          'text in Jenkins',
-          'from the extreme',
-          'feedback plugin'],
-    }
-LCD_HANDLE = None
 
 # where to listen
 UDPPORT = 39418
@@ -106,44 +97,6 @@ def get_connection_string(iface):
         ip_addr = "%s" % ip_addr
     return ip_addr
 
-def format_text(text):
-    """ Format string for LCD, break on newlines and
-        spaces close to maximum lcd  chars"""
-    # Split on newlines:
-    lines = text.splitlines()
-    lcd_lines = []
-    for line in lines:
-        if len(line) > LCD_CHARS:
-            lcd_lines.extend(split_long_line(line, LCD_CHARS))
-        else:
-            lcd_lines.append(line)
-    return lcd_lines
-
-def split_long_line(line, length):
-    """Split long lines on space or length charaters"""
-    result = []
-    while line:
-        if len(line) < length:
-            result.append(line)
-            line = None
-        else:
-            # Split on spaces
-            idx = line.rfind(' ', 0, length)
-            if idx == -1:
-                # No spaces split on length chars
-                result.append(line[:length])
-                line = line[length:]
-            else:
-                result.append(line[:idx])
-                line = line[idx+1:]
-    return result
-
-def lcd_init():
-    """Initialize lcd and get ip address"""
-    global LCD_HANDLE
-    LCD_HANDLE = wiringpi.lcdInit(LCD_ROWS, LCD_CHARS, LCD_BITS, PIN_LCD_RS, PIN_LCD_E, *PINS_LCD_DB)
-    wiringpi.lcdHome(LCD_HANDLE)
-
 # MAIN
 
 # pin config
@@ -161,7 +114,7 @@ wiringpi.softPwmCreate(REDPIN, 0, 100)
 wiringpi.softPwmCreate(YELPIN, 0, 100)
 wiringpi.softPwmCreate(GRNPIN, 0, 100)
 
-lcd_init()
+LCD = Lcd(LCD_ROWS, LCD_CHARS, LCD_BITS, PIN_LCD_RS, PIN_LCD_E, PINS_LCD_DB)
 
 # Siren state machine functions
 def siren_on (fsm):
@@ -484,7 +437,7 @@ def netloop():
     global NEXT_STATE
     global SIREN_NEXT_STATE
     global SOUNDEFFECT_NEXT_STATE
-    global LCD_ROTATOR
+    global LCD
     my_next_state = 'setOff'
     my_next_siren_state = 'setOff'
     my_next_soundeffect_state = 'setOff'
@@ -502,12 +455,7 @@ def netloop():
             logging.info(data)
 
             if 'lcd_text' in data:
-                LCD_LOCK.acquire()
-                try:
-                    text = format_text(data['lcd_text'])
-                    LCD_ROTATOR['text'] = text
-                finally:
-                    LCD_LOCK.release()
+                LCD.update('text', data['lcd_text'])
 
             if ( 'siren' in data and
                  'action' in data and
@@ -605,56 +553,6 @@ def netloop():
         finally:
             STATE_CHANGE_LOCK.release()
 
-def lcdloop():
-    """LCD display handler"""
-    depeche = 0
-    line = 0
-    old_screen_len = 0
-    while(1):
-        wiringpi.lcdHome(LCD_HANDLE)
-        IO.delay(2)
-        LCD_LOCK.acquire()
-
-        try:
-            key = LCD_ROTATOR.keys()[depeche]
-            screen_len = len(LCD_ROTATOR[key])
-            if screen_len != old_screen_len:
-                line = 0;
-            if len(LCD_ROTATOR[key]):
-                lcd_one = LCD_ROTATOR[key][line]
-            line += 1
-            if len(LCD_ROTATOR[key]) == 1:    # Only one line, second blank
-                lcd_two = ""
-            else:
-                lcd_two = LCD_ROTATOR[key][line]
-            if line >= len(LCD_ROTATOR[key])-1:
-                line = 0
-                depeche = (depeche + 1) % len(LCD_ROTATOR)
-                update_freq = 3
-            else:
-                update_freq = 1
-            old_screen_len = screen_len
-        except TypeError:
-            pass
-        finally:
-            LCD_LOCK.release()
-
-        # Only printable chars, no tabs nor newlines
-        lcd_one = filter( lambda x: 32 <= ord(x) <= 126, lcd_one)
-        lcd_two = filter( lambda x: 32 <= ord(x) <= 126, lcd_two)
-
-        line_one = lcd_one[0:LCD_CHARS]
-        line_two = lcd_two[0:LCD_CHARS]
-
-        wiringpi.lcdPosition (LCD_HANDLE, 0, 0)
-        IO.delay(2)
-        wiringpi.lcdPuts(LCD_HANDLE, line_one.ljust(LCD_CHARS))
-        IO.delay(2)
-        wiringpi.lcdPosition (LCD_HANDLE, 0, 1)
-        IO.delay(2)
-        wiringpi.lcdPuts(LCD_HANDLE, line_two.ljust(LCD_CHARS))
-        time.sleep(update_freq)
-
 def soundeffectsloop():
     """Soundeffects playback handler"""
     global SOUNDEFFECT_NEXT_STATE
@@ -696,13 +594,9 @@ def soundeffectsloop():
 def iploop():
     """Watch ip address changes"""
     while(1):
-        global LCD_ROTATOR
-        lcd_two = get_connection_string("eth0")
-        LCD_LOCK.acquire()
-        try:
-            LCD_ROTATOR['ip'][1] = lcd_two
-        finally:
-            LCD_LOCK.release()
+        global LCD
+        text = 'IP Address:\n' + get_connection_string("eth0")
+        LCD.update('ip', text)
         time.sleep(5)
 
 LAMP_THREAD = threading.Thread(target = lamp_state_machine, name = 'Bob')
@@ -717,10 +611,6 @@ NET_THREAD = threading.Thread(target = netloop, name = 'Alice')
 NET_THREAD.setDaemon(1)
 NET_THREAD.start()
 
-LCD_THREAD = threading.Thread(target = lcdloop, name = 'Charlie')
-LCD_THREAD.setDaemon(1)
-LCD_THREAD.start()
-
 IP_THREAD = threading.Thread(target = iploop, name = 'IP')
 IP_THREAD.setDaemon(1)
 IP_THREAD.start()
@@ -733,6 +623,8 @@ BUTTON_THREAD = threading.Thread(target = button_state_machine, name = 'Demo')
 BUTTON_THREAD.setDaemon(1)
 BUTTON_THREAD.start()
 
+LCD.run()
+
 #uncomment the following three lines to run in state machine transition fuzzing mode
 #TEST_THREAD = threading.Thread(target = testloop, name = 'Fuzz')
 #TEST_THREAD.setDaemon(1)
@@ -742,7 +634,6 @@ BUTTON_THREAD.start()
 LAMP_THREAD.join()
 SIREN_THREAD.join()
 NET_THREAD.join()
-LCD_THREAD.join()
 BUTTON_THREAD.join()
 SFX_THREAD.join()
 
