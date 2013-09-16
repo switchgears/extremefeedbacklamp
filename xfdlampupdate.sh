@@ -1,6 +1,6 @@
 #!/bin/bash
 cd /home/pi/extremefeedbacklamp
-git fetch
+git remote update
 DELTAPRE=$(git rev-list HEAD...origin/master --count)
 git reset --hard origin/master
 DELTAPOST=$(git rev-list HEAD...origin/master --count)
