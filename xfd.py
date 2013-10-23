@@ -577,7 +577,12 @@ def soundeffectsloop():
                 playfolder = "/home/pi/extremefeedbacklamp/XFD-Audio/Red"
             try:
                 fhdevnull = open('/dev/null', 'w')
-                fullpathrandomtrack = os.path.join(playfolder, random.choice(os.listdir(playfolder)))
+                files = os.listdir(playfolder)
+                try:
+                    files.remove('.gitignore')
+                except ValueError:
+                    pass
+                fullpathrandomtrack = os.path.join(playfolder, random.choice(files))
                 retcode = subprocess.call(["mpg321", "--quiet", fullpathrandomtrack], shell=False, stdout=fhdevnull, stderr=fhdevnull)
                 fhdevnull.close()
             except Exception, msg:
