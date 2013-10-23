@@ -31,6 +31,8 @@ SIREN_NEXT_STATE = 'setOff'
 SOUNDEFFECT_NEXT_STATE = 'setOff'
 STATE_CHANGE_LOCK = threading.Lock()
 
+button_last_state = 'siren'
+
 # where to listen
 UDPPORT = 39418
 # I/O pin mapping, Red, Yellow, Green, Siren, Button
@@ -136,21 +138,34 @@ def button_down (fsm):
     """Button is pressed/ down"""
     global SIREN_NEXT_STATE
     global NEXT_STATE
+    global SOUNDEFFECT_NEXT_STATE
+    global button_last_state
     my_next_siren_state = 'setOff'
     my_next_lamp_state = 'setOff'
+    my_next_soundeffect_state = 'setOff'
     currentstate = ['setOff', 'setSolidRed', 'setFlashingRed', 'setSolidYellow', 'setFlashingYellow', 'setSolidGreen', 'setFlashingGreen']
     nextstate = ['setSolidRed', 'setFlashingRed', 'setSolidYellow', 'setFlashingYellow', 'setSolidGreen', 'setFlashingGreen', 'setSolidRed']
     my_next_lamp_state = nextstate[currentstate.index(NEXT_STATE)]
     if (my_next_lamp_state == 'setSolidRed'):
-        my_next_siren_state = 'setOn'
+        if button_last_state == 'siren':
+            my_next_siren_state = 'setOn'
+            button_last_state = 'sfx'
+        else:
+            my_next_soundeffect_state = 'setRed'
+            button_last_state = 'siren'
+    elif my_next_lamp_state == 'setSolidYellow':
+        my_next_soundeffect_state = 'setYellow'
+    elif my_next_lamp_state == 'setSolidGreen':
+        my_next_soundeffect_state = 'setGreen'
     # change to the next logical state
     STATE_CHANGE_LOCK.acquire()
     try:
         NEXT_STATE = my_next_lamp_state
         SIREN_NEXT_STATE = my_next_siren_state
+        SOUNDEFFECT_NEXT_STATE = my_next_soundeffect_state
     finally:
         STATE_CHANGE_LOCK.release()
-    my_next_siren_state = 'setOff'
+#    my_next_siren_state = 'setOff'
     time.sleep(1)
 
 # Lamp state machine functions
