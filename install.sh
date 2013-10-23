@@ -15,7 +15,7 @@ sudo apt-get autoclean -y
 sync
 
 # install missing bits
-sudo apt-get install python-dev python-setuptools git htop mpg321 -y
+sudo apt-get install python-dev python-setuptools git htop mpg321 espeak espeak-data -y
 
 # install wiringpi2
 git clone https://github.com/WiringPi/WiringPi2-Python.git
