@@ -657,3 +657,4 @@ NET_THREAD.join()
 BUTTON_THREAD.join()
 SFX_THREAD.join()
 
+LCD.join()
