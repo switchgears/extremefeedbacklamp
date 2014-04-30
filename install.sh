@@ -16,6 +16,9 @@ sync
 
 # install missing bits
 sudo apt-get install python-dev python-setuptools git htop mpg321 espeak espeak-data -y
+sudo easy_install pip
+sudo pip install flask
+sudo pip install pyzmq # this will take several minutes while since it has to compile zeromq
 
 # install wiringpi2
 git clone https://github.com/WiringPi/WiringPi2-Python.git
@@ -29,18 +32,22 @@ sync
 sudo cp -f ./initd_switchgearsXFD /etc/init.d/switchgearsXFD
 sudo cp -f ./initd_switchgearsXFD_discovery /etc/init.d/switchgearsXFD_discovery
 sudo cp -f ./initd_jenkins_confirm /etc/init.d/jenkins_confirm
+sudo cp -f ./initd_cloudxfd /etc/init.d/cloudxfd
 
 sudo chmod 755 /etc/init.d/switchgearsXFD
 sudo chmod 755 /etc/init.d/switchgearsXFD_discovery
 sudo chmod 755 /etc/init.d/jenkins_confirm
+sudo chmod 755 /etc/init.d/cloudxfd
 
 sudo chown root:root /etc/init.d/switchgearsXFD
 sudo chown root:root /etc/init.d/switchgearsXFD_discovery
 sudo chown root:root /etc/init.d/jenkins_confirm
+sudo chown root:root /etc/init.d/cloudxfd
 
 sudo update-rc.d switchgearsXFD defaults
 sudo update-rc.d switchgearsXFD_discovery defaults
 sudo update-rc.d jenkins_confirm defaults
+sudo update-rc.d cloudxfd defaults
 
 sync
 

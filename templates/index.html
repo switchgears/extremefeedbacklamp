@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XFD Lamp Configuration</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>XFD Lamp Configuration</h1>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-info">
+              {{ message }}
+            </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <form action="/update" role="form" method="post">
+        <div class="form-group">
+            <label for="url">Jenkins Master URL</label>
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-globe"></span></span>
+                <input type="url" class="form-control" id="url" name="url" placeholder="http://jenkins.yourname.com" value="{{ url }}"/>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+</div>
+</body>
+</html>
