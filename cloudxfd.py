@@ -45,6 +45,7 @@ def http_worker(lock):
         flash("The URL has been successfully updated")
         return redirect(url_for('index'))
 
+    app.template_folder = "/home/pi/extremefeedbacklamp/templates"
     app.secret_key = "notreallyasecret"
     app.run('0.0.0.0')
 
@@ -102,13 +103,13 @@ def zeromq_worker(lock):
         message = zmq_socket.recv()
 
         if message:
-            udp_socket.send(message, ("127.0.0.1", "39418"))
+            udp_socket.sendto(message, ("127.0.0.1", 39418))
 
         time.sleep(1)
 
 
 def cloud_xfd():
-    """The main function.    
+    """The main function.
     Please note that we are using processes instead of functions
     because Flask prefers to be running in the main thread"""
     lock = multiprocessing.Lock()

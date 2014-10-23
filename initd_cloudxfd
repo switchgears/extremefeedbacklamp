@@ -27,7 +27,7 @@ do_start()
 {
     mkdir -p $(dirname $PIDFILE)
     rm -f $PIDFILE
-    sudo /home/pi/switchgearsXFD/cloudxfd.py &
+    sudo /home/pi/extremefeedbacklamp/cloudxfd.py &
     echo -n $! > $PIDFILE
 }
 
