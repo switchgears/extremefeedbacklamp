@@ -103,7 +103,11 @@ def zeromq_worker(lock):
         message = zmq_socket.recv()
 
         if message:
-            udp_socket.sendto(message, ("127.0.0.1", 39418))
+            if "\a" in message:
+                for part in message.split("\a"):
+                    udp_socket.sendto(part, ("0.0.0.0", 39418))
+            else:
+                udp_socket.sendto(message, ("0.0.0.0", 39418))
 
         time.sleep(1)
 
