@@ -11,16 +11,16 @@ import os
 def get_url():
     """Get the url stored in the data file"""
     if not os.path.isfile("cloud-xfd.data"):
-        with open("cloud-xfd.data", "w") as f:
+        with open("/home/pi/extremefeedbacklamp/cloud-xfd.data", "w") as f:
             f.write("")
 
-    with open("cloud-xfd.data", "r") as f:
+    with open("/home/pi/extremefeedbacklamp/cloud-xfd.data", "r") as f:
         return f.read()
 
 
 def put_url(address):
     """Update the url stored in the data file"""
-    with open("cloud-xfd.data", "w") as f:
+    with open("/home/pi/extremefeedbacklamp/cloud-xfd.data", "w") as f:
         f.write(address)
 
 
