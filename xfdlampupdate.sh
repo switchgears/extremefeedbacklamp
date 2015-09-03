@@ -3,7 +3,8 @@ cd /home/pi/extremefeedbacklamp
 git remote update || true
 git fetch || true
 DELTAPRE=$(git rev-list HEAD...origin/master --count)
-git reset --hard origin/master
+sudo git reset --hard origin/master || true
+sudo git clean -xfd || true
 DELTAPOST=$(git rev-list HEAD...origin/master --count)
 if [ "$DELTAPRE" != "$DELTAPOST" ]
 then
