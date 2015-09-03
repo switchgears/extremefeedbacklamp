@@ -30,13 +30,16 @@ class Lcd(object):
                        }
         self.lock = threading.Lock()
         self.io = wiringpi.GPIO(wiringpi.GPIO.WPI_MODE_PINS)
-        
+
     def run(self):
         """Start the thread"""
-        lcd_thread = threading.Thread(target = self.lcdloop, name = 'LCD')
-        lcd_thread.setDaemon(1)
-        lcd_thread.start()
-        lcd_thread.join()
+        self.lcd_thread = threading.Thread(target = self.lcdloop, name = 'LCD')
+        self.lcd_thread.setDaemon(1)
+        self.lcd_thread.start()
+
+    def join(self):
+        """Join in its own method"""
+        self.lcd_thread.join()
         
 
     def format_text(self, text):

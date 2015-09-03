@@ -15,6 +15,7 @@ import wiringpi2 as wiringpi
 import os
 import subprocess
 from lcd import Lcd
+from speech import Speech
 
 #logging level
 #DEBUG: Print EVERYTHING
@@ -117,6 +118,7 @@ wiringpi.softPwmCreate(YELPIN, 0, 100)
 wiringpi.softPwmCreate(GRNPIN, 0, 100)
 
 LCD = Lcd(LCD_ROWS, LCD_CHARS, LCD_BITS, PIN_LCD_RS, PIN_LCD_E, PINS_LCD_DB)
+SPEECH = Speech()
 
 # Siren state machine functions
 def siren_on (fsm):
@@ -472,6 +474,9 @@ def netloop():
             if 'lcd_text' in data:
                 LCD.update('text', data['lcd_text'])
 
+            if 'speech' in data:
+                SPEECH.speak(data['speech'])
+
             if ( 'siren' in data and
                  'action' in data and
                  data['action'] in ['ON', 'OFF']
@@ -644,6 +649,8 @@ BUTTON_THREAD.setDaemon(1)
 BUTTON_THREAD.start()
 
 LCD.run()
+SPEECH.run()
+
 
 #uncomment the following three lines to run in state machine transition fuzzing mode
 #TEST_THREAD = threading.Thread(target = testloop, name = 'Fuzz')
@@ -656,4 +663,5 @@ SIREN_THREAD.join()
 NET_THREAD.join()
 BUTTON_THREAD.join()
 SFX_THREAD.join()
-
+SPEECH.join()
+LCD.join()
