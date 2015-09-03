@@ -15,7 +15,7 @@ sudo apt-get autoclean -y
 sync
 
 # install missing bits
-sudo apt-get install python-dev python-setuptools git htop mpg321 espeak espeak-data -y
+sudo apt-get install python-dev python-setuptools git htop mpg321 espeak espeak-data lsof -y
 sudo easy_install pip
 sudo pip install flask
 sudo pip install pyzmq # this will take several minutes while since it has to compile zeromq
