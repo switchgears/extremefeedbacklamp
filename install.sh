@@ -21,18 +21,13 @@ sudo pip install flask
 sudo pip install pyzmq # this will take several minutes while since it has to compile zeromq
 
 # install wiringpi2
-git clone https://github.com/WiringPi/WiringPi2-Python.git
-cd WiringPi2-Python
-sudo python setup.py install
-cd ..
-
-sync
+/home/pi/extremefeedbacklamp/install_WiringPi.sh
 
 # install xfd as startup application
-sudo cp -f ./initd_switchgearsXFD /etc/init.d/switchgearsXFD
-sudo cp -f ./initd_switchgearsXFD_discovery /etc/init.d/switchgearsXFD_discovery
-sudo cp -f ./initd_jenkins_confirm /etc/init.d/jenkins_confirm
-sudo cp -f ./initd_cloudxfd /etc/init.d/cloudxfd
+sudo ln -sf ./initd_switchgearsXFD /etc/init.d/switchgearsXFD
+sudo ln -sf ./initd_switchgearsXFD_discovery /etc/init.d/switchgearsXFD_discovery
+sudo ln -sf ./initd_jenkins_confirm /etc/init.d/jenkins_confirm
+sudo ln -sf ./initd_cloudxfd /etc/init.d/cloudxfd
 
 sudo chmod 755 /etc/init.d/switchgearsXFD
 sudo chmod 755 /etc/init.d/switchgearsXFD_discovery
@@ -54,10 +49,10 @@ sync
 sudo apt-get autoremove -y
 sudo apt-get autoclean -y
 
-sudo cp -f /home/pi/extremefeedbacklamp/xfdlampupdate.sh /etc/cron.daily/xfdlampupdate
+sudo ln -sf /home/pi/extremefeedbacklamp/xfdlampupdate.sh /etc/cron.daily/xfdlampupdate
 sudo chmod +x /etc/cron.daily/xfdlampupdate
 # if daily updates just ain't quick enough
-#sudo cp -f /home/pi/extremefeedbacklamp/xfdlampupdate.sh /etc/cron.hourly/xfdlampupdate
+#sudo ln -sf /home/pi/extremefeedbacklamp/xfdlampupdate.sh /etc/cron.hourly/xfdlampupdate
 #sudo chmod +x /etc/cron.hourly/xfdlampupdate
 
 sync
