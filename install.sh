@@ -24,10 +24,10 @@ sudo pip install pyzmq # this will take several minutes while since it has to co
 /home/pi/extremefeedbacklamp/install_WiringPi.sh
 
 # install xfd as startup application
-sudo ln -sf ./initd_switchgearsXFD /etc/init.d/switchgearsXFD
-sudo ln -sf ./initd_switchgearsXFD_discovery /etc/init.d/switchgearsXFD_discovery
-sudo ln -sf ./initd_jenkins_confirm /etc/init.d/jenkins_confirm
-sudo ln -sf ./initd_cloudxfd /etc/init.d/cloudxfd
+sudo ln -sf /home/pi/extremefeedbacklamp/initd_switchgearsXFD /etc/init.d/switchgearsXFD
+sudo ln -sf /home/pi/extremefeedbacklamp/initd_switchgearsXFD_discovery /etc/init.d/switchgearsXFD_discovery
+sudo ln -sf /home/pi/extremefeedbacklamp/initd_jenkins_confirm /etc/init.d/jenkins_confirm
+sudo ln -sf /home/pi/extremefeedbacklamp/initd_cloudxfd /etc/init.d/cloudxfd
 
 sudo chmod 755 /etc/init.d/switchgearsXFD
 sudo chmod 755 /etc/init.d/switchgearsXFD_discovery
